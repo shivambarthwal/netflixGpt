@@ -7,4 +7,5 @@ export const checkValidationData = (email, password) => {
   if (!passwordPattern.test(password)) {
     return "Password is not valid";
   }
+  return null;
 };

@@ -1,8 +1,15 @@
 import React, { useRef, useState } from 'react'
 import Header from './Header'
 import { checkValidationData } from '../utils/Validate'
-
+import {createUserWithEmailAndPassword , signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { auth } from '../utils/Firebase'
+import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { addUser } from '../utils/userSlice'
 const Login = () => {
+
+   const navigate = useNavigate()
+   const dispatch = useDispatch()
   const[isSignInform , setisSignInform] = useState(true)
   const [errormessage, seterrormessage] = useState(null)
   
@@ -10,6 +17,7 @@ const Login = () => {
     setisSignInform(!isSignInform)
   }
 
+  const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
 
@@ -17,8 +25,44 @@ const Login = () => {
     e.preventDefault()
     const message = checkValidationData(email.current.value,password.current.value)
     seterrormessage(message)
-    console.log(message);
+    if(message) return;
+    if(!isSignInform){
+      //SignUp Logic
+      createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
+       .then((userCredential) => {
+          const user = userCredential.user;
+          updateProfile(user,{
+            displayName: name.current.value , photoURL:"https://avatars.githubusercontent.com/u/72181927?v=4"
+          }).then(()=>{
+             const {uid,email,displayName,photoURL} = auth.currentUser;
+                    dispatch(addUser({uid:uid,email:email,displayName:displayName,photoURL:photoURL}))
+            navigate("/browse")
+         
+          }).catch((error)=>{
+            console.log(error);
+            seterrormessage(error.message)
+          })
+        })
+       .catch((error) => {
+          var errorMessage = error.message;
+          seterrormessage(errorMessage)
+        });
+    }else{
+      //Sign In Logic
+      signInWithEmailAndPassword(auth,email.current.value, password.current.value)
+  .then((userCredential) => {
+    const user = userCredential.user;
+     navigate("/browse")
+    console.log(user,"LOG IN");
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    seterrormessage(errorMessage + errorCode)
+  });
+    }
   }
+  
 
   return (
    <div className="h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center bg-[url('/BannerNetflix.jpg')]">
@@ -28,7 +72,7 @@ const Login = () => {
    {!isSignInform && 
     <input
       type="text"
-     
+     ref={name}
       placeholder="Full Name"
       className="w-full p-3 mb-4 bg-gray-800 rounded text-white placeholder-gray-400 focus:outline-none"
     />
