@@ -6,12 +6,13 @@ import { auth } from '../utils/Firebase'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { addUser } from '../utils/userSlice'
+import { FaSpinner } from 'react-icons/fa'
+import { USER_AVATAR } from '../utils/constants'
 const Login = () => {
-
-   const navigate = useNavigate()
    const dispatch = useDispatch()
   const[isSignInform , setisSignInform] = useState(true)
   const [errormessage, seterrormessage] = useState(null)
+  const [isLoading, setIsLoading] = useState(false);
   
   function toggleForm(){
     setisSignInform(!isSignInform)
@@ -26,20 +27,20 @@ const Login = () => {
     const message = checkValidationData(email.current.value,password.current.value)
     seterrormessage(message)
     if(message) return;
+     setIsLoading(true);
     if(!isSignInform){
       //SignUp Logic
       createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
        .then((userCredential) => {
           const user = userCredential.user;
           updateProfile(user,{
-            displayName: name.current.value , photoURL:"https://avatars.githubusercontent.com/u/72181927?v=4"
+            displayName: name.current.value , photoURL:USER_AVATAR
           }).then(()=>{
              const {uid,email,displayName,photoURL} = auth.currentUser;
                     dispatch(addUser({uid:uid,email:email,displayName:displayName,photoURL:photoURL}))
-            navigate("/browse")
-         
           }).catch((error)=>{
             console.log(error);
+             setIsLoading(false);
             seterrormessage(error.message)
           })
         })
@@ -52,8 +53,6 @@ const Login = () => {
       signInWithEmailAndPassword(auth,email.current.value, password.current.value)
   .then((userCredential) => {
     const user = userCredential.user;
-     navigate("/browse")
-    console.log(user,"LOG IN");
   })
   .catch((error) => {
     const errorCode = error.code;
@@ -93,10 +92,20 @@ const Login = () => {
     <button
       type="submit" 
       onClick={handleSubmmitClick}
-      className="w-full cursor-pointer bg-red-600 hover:bg-red-700 text-white py-3 rounded"
-    >
-      {isSignInform ? "Sign In" : " Sign Up"}
-    </button>
+    disabled={isLoading}
+          className={`w-full cursor-pointer bg-red-600 hover:bg-red-700 text-white py-3 rounded flex justify-center items-center transition duration-300 ${
+            isLoading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
+        >
+          {isLoading ? (
+            <>
+              <FaSpinner className="animate-spin mr-2" />
+              Processing...
+            </>
+          ) : (
+            isSignInform ? "Sign In" : "Sign Up"
+          )}
+        </button>
     <p className="mt-4 text-center text-gray-300 cursor-pointer hover:underline">
       Forgot Password?
     </p>

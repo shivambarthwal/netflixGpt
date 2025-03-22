@@ -1,1 +1,23 @@
 @import "tailwindcss";
+ 
+  .hide-scrollbar {
+      scrollbar-width: 1px !important;
+      -ms-overflow-style: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+  }
+
+  body::-webkit-scrollbar,
+  .CustomScroll::-webkit-scrollbar {
+      width: 2px;
+      background-color: #dbefe7;
+  }
+
+  body::-webkit-scrollbar-thumb,
+  .CustomScroll::-webkit-scrollbar-thumb {
+      -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+      background-color: black;
+      border-radius: 100vh;
+  }
